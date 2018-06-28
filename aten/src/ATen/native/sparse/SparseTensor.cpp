@@ -191,7 +191,7 @@ SparseTensor clone_sparse(const SparseTensor& self) {
   _raw_resize_sparse(other, self._sparseDims(), self._denseDims(), self.sizes());
   // NB: This seems to preserve the size of the UN-narrowed indices and
   // values.  Veeery interesting.
-  _copy_into_sparse(other, _get_sparse_impl(self)->indices(), _get_sparse_impl(self)->values());
+  _copy_into_sparse(other, _get_sparse_impl(self)->indices(), _get_sparse_impl(self)->values(), false);
   _get_sparse_impl(other)->set_coalesced(self.is_coalesced());
   _get_sparse_impl(other)->set_nnz(self._nnz());
   return other;
@@ -244,11 +244,11 @@ Tensor sparse_to_dense(const SparseTensor& self) {
   return dst.add_(self);
 }
 
-SparseTensor& copy_sparse_(SparseTensor& self, const SparseTensor& src) {
+SparseTensor& copy_sparse_(SparseTensor& self, const SparseTensor& src, bool non_blocking) {
   if (isSameTensor(self, src)) return self;
   _raw_resize_sparse(self, src._sparseDims(), src._denseDims(), src.sizes());
   // NB: This seems to copy the underlying full indices/values buffer
-  _copy_into_sparse(self, _get_sparse_impl(src)->indices(), _get_sparse_impl(src)->values());
+  _copy_into_sparse(self, _get_sparse_impl(src)->indices(), _get_sparse_impl(src)->values(), non_blocking);
   _get_sparse_impl(self)->set_coalesced(src.is_coalesced());
   _get_sparse_impl(self)->set_nnz(src._nnz());
   return self;

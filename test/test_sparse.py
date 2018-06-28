@@ -339,6 +339,35 @@ class TestSparse(TestCase):
         y = x.clone()
         self.assertTrue(y.is_coalesced())
 
+    def test_copy_(self):
+        expected_output = torch.tensor([3., 4., 5.])
+        copy_src = torch.sparse.DoubleTensor(
+            torch.LongTensor([[0], [1], [2]]).t(),
+            torch.FloatTensor([3, 4, 5]),
+            torch.Size([3]))
+
+        if self.is_cuda:
+            input = torch.cuda.sparse.DoubleTensor(
+                torch.LongTensor([[0], [1], [2]]).transpose(1, 0).cuda(),
+                torch.FloatTensor([1, 1, 1]).cuda(),
+                torch.Size([3]))
+        else:
+            input = torch.sparse.DoubleTensor(
+                torch.LongTensor([[0], [1], [2]]).transpose(1, 0),
+                torch.FloatTensor([1, 1, 1]),
+                torch.Size([3]))
+
+        # test copy and non_blocking
+        input.copy_(copy_src, non_blocking=True)
+        self.assertEqual(expected_output, input.to_dense())
+
+        # test no broadcast
+        input.copy_(torch.sparse.DoubleTensor(
+            torch.LongTensor([[0]]).t(),
+            torch.FloatTensor([2]),
+            torch.Size([1])))
+        self.assertEqual(torch.tensor([2]), input.to_dense())
+
     @cuda_only
     def test_cuda_empty(self):
         x = torch.sparse.FloatTensor(2, 3, 4)
@@ -802,6 +831,7 @@ class TestSparse(TestCase):
             'sub_': lambda x, y: x.sub_(y),
             'mul': lambda x, y: x.mul(y),
             'mul_': lambda x, y: x.mul_(y),
+            'copy_': lambda x, y: x.copy_(y),
         }
 
         for test_name, test_fn in to_test_two_arg.items():
