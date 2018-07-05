@@ -1774,7 +1774,7 @@
     SparseCPU: hspmm_sparse_cpu
     SparseCUDA: hspmm_sparse_cuda
 
-- func: raw_copy_sparse_(Tensor self, Tensor src, bool non_blocking=false) -> Tensor
+- func: copy_sparse_to_sparse_(Tensor self, Tensor src, bool non_blocking=false) -> Tensor
   variants: function
   dispatch:
     SparseCPU: copy_sparse_

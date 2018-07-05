@@ -339,20 +339,20 @@ class TestSparse(TestCase):
         y = x.clone()
         self.assertTrue(y.is_coalesced())
 
-    def test_copy_(self):
+    def test_S_to_S_copy_(self):
         expected_output = torch.tensor([3., 4., 5.])
-        copy_src = torch.sparse.DoubleTensor(
+        copy_src = torch.sparse.FloatTensor(
             torch.LongTensor([[0], [1], [2]]).t(),
             torch.FloatTensor([3, 4, 5]),
             torch.Size([3]))
 
         if self.is_cuda:
-            input = torch.cuda.sparse.DoubleTensor(
+            input = torch.cuda.sparse.FloatTensor(
                 torch.LongTensor([[0], [1], [2]]).transpose(1, 0).cuda(),
                 torch.FloatTensor([1, 1, 1]).cuda(),
                 torch.Size([3]))
         else:
-            input = torch.sparse.DoubleTensor(
+            input = torch.sparse.FloatTensor(
                 torch.LongTensor([[0], [1], [2]]).transpose(1, 0),
                 torch.FloatTensor([1, 1, 1]),
                 torch.Size([3]))
@@ -361,8 +361,18 @@ class TestSparse(TestCase):
         input.copy_(copy_src, non_blocking=True)
         self.assertEqual(expected_output, input.to_dense())
 
+        # test type conversion
+        input_dtype = input.dtype
+        copy_src = torch.sparse.DoubleTensor(
+            torch.LongTensor([[0], [1], [2]]).t(),
+            torch.DoubleTensor([3, 4, 5]),
+            torch.Size([3]))
+        input.copy_(copy_src, non_blocking=True)
+        self.assertEqual(input_dtype, input.dtype)
+        self.assertEqual(expected_output, input.to_dense())
+
         # test no broadcast
-        input.copy_(torch.sparse.DoubleTensor(
+        input.copy_(torch.sparse.FloatTensor(
             torch.LongTensor([[0]]).t(),
             torch.FloatTensor([2]),
             torch.Size([1])))

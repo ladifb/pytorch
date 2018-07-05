@@ -110,7 +110,7 @@ SparseTensor& log1p_out_sparse(SparseTensor& r, const SparseTensor& t) {
       r.is_coalesced(), "in-place log1p on uncoalesced tensors is not supported yet!");
   }
   else {
-    r = raw_copy_sparse_(r, t.coalesce());
+    r = copy_sparse_to_sparse_(r, t.coalesce());
   }
   r._values().log1p_();
   return r;
@@ -206,7 +206,7 @@ SparseTensor& s_add_out_sparse_cpu(SparseTensor& r, const SparseTensor& t, const
   AT_CHECK(t.sizes().equals(src.sizes()), "cadd operands have incompatible sizes");
 
   if (src._nnz() == 0) {
-    return raw_copy_sparse_(r, t);
+    return copy_sparse_to_sparse_(r, t);
   }
   if (t._nnz() == 0) {
     return mul_out_sparse_scalar(r, src, value);
