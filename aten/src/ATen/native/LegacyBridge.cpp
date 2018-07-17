@@ -192,7 +192,12 @@ Tensor& mul_out(Tensor& result, const Tensor& self, const Tensor& other) {
   if (_has_native(self)) {
     Tensor b_self, b_other;
     std::tie(b_self, b_other) = expand_outplace(self, other, "mul_out");
-    return s_native_mul_out(result, self, other);
+    if (other.is_sparse()) {
+      return s_native_mul_out(result, self, other);
+    }
+    else {
+      return s_native_sparse_dense_mul_out(result, self, other);
+    }
   } else {
     return th_mul_out(result, self, other);
   }
@@ -202,7 +207,12 @@ Tensor mul(const Tensor& self, const Tensor& other) {
   if (_has_native(self)) {
     Tensor b_self, b_other;
     std::tie(b_self, b_other) = expand_outplace(self, other, "mul");
-    return s_native_mul(self, other);
+    if (other.is_sparse()) {
+      return s_native_mul(self, other);
+    }
+    else {
+      return s_native_sparse_dense_mul(self, other);
+    }
   } else {
     return th_mul(self, other);
   }
@@ -212,7 +222,12 @@ Tensor& mul_(Tensor& self, const Tensor& other) {
   if (_has_native(self)) {
     Tensor b_other;
     std::tie(b_other) = expand_inplace(self, other, "mul_");
-    return s_native_mul_(self, b_other);
+    if (other.is_sparse()) {
+      return s_native_mul_(self, other);
+    }
+    else {
+      return s_native_sparse_dense_mul_(self, other);
+    }
   } else {
     return th_mul_(self, other);
   }

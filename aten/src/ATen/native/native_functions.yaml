@@ -1617,17 +1617,35 @@
     SparseCPU: s_mul_out_sparse_cpu
     SparseCUDA: s_mul_out_sparse_cuda
 
+- func: s_native_sparse_dense_mul_out(Tensor result, Tensor self, Tensor other) -> Tensor
+  variants: function
+  dispatch:
+    SparseCPU: s_mul_out_sparse_dense_cpu
+    SparseCUDA: s_mul_out_sparse_dense_cuda
+
 - func: s_native_mul(Tensor self, Tensor other) -> Tensor
   variants: function
   dispatch:
     SparseCPU: s_mul_sparse_cpu
     SparseCUDA: s_mul_sparse_cuda
 
+- func: s_native_sparse_dense_mul(Tensor self, Tensor other) -> Tensor
+  variants: function
+  dispatch:
+    SparseCPU: s_mul_sparse_dense_cpu
+    SparseCUDA: s_mul_sparse_dense_cuda
+
 - func: s_native_mul_(Tensor self, Tensor other) -> Tensor
   variants: function
   dispatch:
     SparseCPU: s_mul_sparse_cpu_
     SparseCUDA: s_mul_sparse_cuda_
+
+- func: s_native_sparse_dense_mul_(Tensor self, Tensor other) -> Tensor
+  variants: function
+  dispatch:
+    SparseCPU: s_mul_sparse_dense_cpu_
+    SparseCUDA: s_mul_sparse_dense_cuda_
 
 - func: native_mul_out(Tensor result, Tensor self, Scalar other) -> Tensor
   variants: function

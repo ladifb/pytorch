@@ -469,6 +469,10 @@
   self: grad * other
   other: grad * self
 
+- name: s_native_sparse_dense_mul(Tensor self, Tensor other)
+  self: grad * other
+  other: grad * self
+
 - name: th_mul(Tensor self, Tensor other)
   self: grad * other
   other: grad * self
