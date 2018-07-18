@@ -347,12 +347,12 @@ class TestSparse(TestCase):
             torch.Size([3]))
 
         if self.is_cuda:
-            input = torch.cuda.sparse.FloatTensor(
+            input = torch.sparse_coo_tensor(
                 torch.LongTensor([[0], [1], [2]]).transpose(1, 0).cuda(),
                 torch.FloatTensor([1, 1, 1]).cuda(),
                 torch.Size([3]))
         else:
-            input = torch.sparse.FloatTensor(
+            input = torch.sparse_coo_tensor(
                 torch.LongTensor([[0], [1], [2]]).transpose(1, 0),
                 torch.FloatTensor([1, 1, 1]),
                 torch.Size([3]))
@@ -363,7 +363,7 @@ class TestSparse(TestCase):
 
         # test type conversion
         input_dtype = input.dtype
-        copy_src = torch.sparse.DoubleTensor(
+        copy_src = torch.sparse_coo_tensor(
             torch.LongTensor([[0], [1], [2]]).t(),
             torch.DoubleTensor([3, 4, 5]),
             torch.Size([3]))
@@ -372,7 +372,7 @@ class TestSparse(TestCase):
         self.assertEqual(expected_output, input.to_dense())
 
         # test no broadcast
-        input.copy_(torch.sparse.FloatTensor(
+        input.copy_(torch.sparse_coo_tensor(
             torch.LongTensor([[0]]).t(),
             torch.FloatTensor([2]),
             torch.Size([1])))
