@@ -560,10 +560,18 @@ class TestAutograd(TestCase):
         expected_y = expected_a * 2
         self.assertEqual(expected_y.to_dense().data, y.to_dense().data)
 
-        y.backward(torch.sparse_coo_tensor(I, V, size))
+        y.backward(torch.sparse_coo_tensor(I, V, size), retain_graph=True)
         expected_grad = expected_y
         self.assertEqual(expected_grad.to_dense().data, b.grad.to_dense().data)
         self.assertEqual(None, a.grad)
+
+        # test copy from cuda to cpu
+        if torch.cuda.is_available():
+            b = torch.sparse_coo_tensor(I.cuda(), V.cuda(), size, requires_grad=True)
+        a.copy_(b)
+        y = a * 2
+        y.backward(torch.sparse_coo_tensor(I, V, size))
+        self.assertEqual(b.is_cuda, b.grad.is_cuda)
 
     def test_multi_backward(self):
         x = torch.randn(5, 5, requires_grad=True)

@@ -1872,12 +1872,13 @@ Tensor log1p_backward(const Tensor& grad, const Tensor& self) {
   return grad / (self + 1);
 }
 
-Tensor copy_sparse_to_sparse_backward(const Tensor& grad, const Tensor& self, const Tensor& src, bool non_blocking) {
-  if (!src.is_cuda() && grad.is_cuda()) { // cuda -> cpu
+std::tuple<Tensor, Tensor> copy_sparse_to_sparse_backward(const Tensor& grad, const Tensor& self, const Tensor& src, bool non_blocking) {
+  auto self_grad = at::native::sparse_coo_tensor( self._indices().type().tensor({0}), self._values().type().tensor({0}), self.sizes());
+  if (src.is_cuda() != grad.is_cuda()) { // cuda -> cpu or cpu -> cuda
     auto src_grad = at::native_tensor(src._values().type().toSparse()).copy_(grad, true);
-    return src_grad;
+    return std::tuple<Tensor, Tensor> (self_grad, src_grad);
   }
-  return grad; // cuda -> cuda or cpu -> cpu
+  return std::tuple<Tensor, Tensor> (self_grad, grad); // cuda -> cuda or cpu -> cpu
 }
 
 } // anonymous namespace
