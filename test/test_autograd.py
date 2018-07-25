@@ -546,6 +546,25 @@ class TestAutograd(TestCase):
         (sparse_fn1(x) + sparse_fn2(x)).sum().backward()
         self.assertEqual(x.grad, sparse_grad1 + sparse_grad2)
 
+    def test_S_to_S_copy_(self):
+        I, V, size = torch.LongTensor([[0, 1, 2]]), torch.FloatTensor([1, 2, 3]), torch.Size([3])
+
+        a = torch.sparse_coo_tensor([], torch.FloatTensor([]), [1])
+        b = torch.sparse_coo_tensor(I, V, size, requires_grad=True)
+
+        a.copy_(b)
+        expected_a = torch.sparse_coo_tensor(I, V, size)
+        self.assertEqual(expected_a.to_dense().data, a.to_dense().data)
+
+        y = a * 2
+        expected_y = expected_a * 2
+        self.assertEqual(expected_y.to_dense().data, y.to_dense().data)
+
+        y.backward(torch.sparse_coo_tensor(I, V, size))
+        expected_grad = expected_y
+        self.assertEqual(expected_grad.to_dense().data, b.grad.to_dense().data)
+        self.assertEqual(None, a.grad)
+
     def test_multi_backward(self):
         x = torch.randn(5, 5, requires_grad=True)
         y = torch.randn(5, 5, requires_grad=True)

@@ -340,22 +340,14 @@ class TestSparse(TestCase):
         self.assertTrue(y.is_coalesced())
 
     def test_S_to_S_copy_(self):
-        expected_output = torch.tensor([3., 4., 5.])
-        copy_src = torch.sparse.FloatTensor(
-            torch.LongTensor([[0], [1], [2]]).t(),
-            torch.FloatTensor([3, 4, 5]),
-            torch.Size([3]))
+        I, V, size = torch.LongTensor([[0, 1, 2]]), torch.FloatTensor([3, 4, 5]), torch.Size([3])
+        expected_output = V
+        copy_src = torch.sparse.FloatTensor(I, V, size)
 
         if self.is_cuda:
-            input = torch.sparse_coo_tensor(
-                torch.LongTensor([[0], [1], [2]]).transpose(1, 0).cuda(),
-                torch.FloatTensor([1, 1, 1]).cuda(),
-                torch.Size([3]))
+            input = torch.sparse_coo_tensor(I.cuda(), torch.ones_like(V).cuda(), size)
         else:
-            input = torch.sparse_coo_tensor(
-                torch.LongTensor([[0], [1], [2]]).transpose(1, 0),
-                torch.FloatTensor([1, 1, 1]),
-                torch.Size([3]))
+            input = torch.sparse_coo_tensor(I, torch.ones_like(V), size)
 
         # test copy and non_blocking
         input.copy_(copy_src, non_blocking=True)
@@ -363,17 +355,14 @@ class TestSparse(TestCase):
 
         # test type conversion
         input_dtype = input.dtype
-        copy_src = torch.sparse_coo_tensor(
-            torch.LongTensor([[0], [1], [2]]).t(),
-            torch.DoubleTensor([3, 4, 5]),
-            torch.Size([3]))
+        copy_src = torch.sparse_coo_tensor(I, V.type(torch.DoubleTensor), size)
         input.copy_(copy_src, non_blocking=True)
         self.assertEqual(input_dtype, input.dtype)
         self.assertEqual(expected_output, input.to_dense())
 
         # test no broadcast
         input.copy_(torch.sparse_coo_tensor(
-            torch.LongTensor([[0]]).t(),
+            torch.LongTensor([[0]]),
             torch.FloatTensor([2]),
             torch.Size([1])))
         self.assertEqual(torch.tensor([2]), input.to_dense())
