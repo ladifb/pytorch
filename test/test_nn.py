@@ -3815,6 +3815,23 @@ class TestNN(NNTestCase):
         self._test_variable_sequence()
 
     @unittest.skipIf(not TEST_CUDA, 'CUDA not available')
+    def test_LSTM_device_type(self):
+        lstm = nn.LSTM(10, 100, batch_first=True)
+
+        # test input and weights are not at the same device
+        i = torch.randn(1, 30, 10).to('cuda')
+        with self.assertRaisesRegex(RuntimeError,
+                                    "input and weights at RNN should be at the same device, but"):
+            lstm(i)
+
+        # test input are not at the same device
+        i.to('cpu')
+        h = [torch.zeros(1, 1, 100).to('cuda'), torch.zeros(1, 1, 100).to('cuda')]
+        with self.assertRaisesRegex(RuntimeError,
+                                    "input and weights at RNN should be at the same device, but"):
+            lstm(i, h)
+
+    @unittest.skipIf(not TEST_CUDA, 'CUDA not available')
     @repeat_test_for_types(ALL_TENSORTYPES)
     def test_variable_sequence_cuda(self, dtype=torch.float):
         self._test_variable_sequence("cuda", dtype)

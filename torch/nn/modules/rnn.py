@@ -143,13 +143,23 @@ class RNNBase(Module):
             if tuple(hx.size()) != expected_hidden_size:
                 raise RuntimeError(msg.format(expected_hidden_size, tuple(hx.size())))
 
+        def check_device_type(d1, d2, d1_from, d2_from):
+            if d1 != d2:
+                raise RuntimeError("input and weights at RNN should be at the same device, "
+                                   "but got {} at {} and {} at {}".format(d1_from, d1, d2_from, d2))
+
+        check_device_type(input.device, (next(self.parameters())).device, 'input', 'RNN weights')
+
         if self.mode == 'LSTM':
             check_hidden_size(hidden[0], expected_hidden_size,
                               'Expected hidden[0] size {}, got {}')
             check_hidden_size(hidden[1], expected_hidden_size,
                               'Expected hidden[1] size {}, got {}')
+            for h in hidden:
+                check_device_type(input.device, h.device, 'input', 'hidden')
         else:
             check_hidden_size(hidden, expected_hidden_size)
+            check_device_type(input.device, hidden.device, 'input', 'hidden')
 
     def forward(self, input, hx=None):
         is_packed = isinstance(input, PackedSequence)
