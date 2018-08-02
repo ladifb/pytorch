@@ -2810,6 +2810,12 @@ class TestNN(NNTestCase):
         out = dp.data_parallel(l, i, (0, 1))
         self.assertEqual(out, l(i))
 
+        # test output_device
+        l = nn.Linear(10, 5).float().cuda()
+        i = Variable(torch.randn(20, 10).float().cuda())
+        out = dp.data_parallel(l, i, (0, 1), torch.device('cuda'))
+        self.assertEqual(out, l(i))
+
     @unittest.skipIf(not TEST_MULTIGPU or not PY3, "multi-GPU not supported")
     def test_data_parallel_model_no_refcycles(self):
         # Python 2.7 will create reference cycles with the following

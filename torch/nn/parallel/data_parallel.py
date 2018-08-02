@@ -103,6 +103,8 @@ class DataParallel(Module):
             device_ids = list(range(torch.cuda.device_count()))
         if output_device is None:
             output_device = device_ids[0]
+        elif isinstance(output_device, torch.device):
+            output_device = output_device.index
         self.dim = dim
         self.module = module
         self.device_ids = device_ids
@@ -159,6 +161,8 @@ def data_parallel(module, inputs, device_ids=None, output_device=None, dim=0, mo
 
     if output_device is None:
         output_device = device_ids[0]
+    elif isinstance(output_device, torch.device):
+        output_device = output_device.index
 
     inputs, module_kwargs = scatter_kwargs(inputs, module_kwargs, device_ids, dim)
     if len(device_ids) == 1:
