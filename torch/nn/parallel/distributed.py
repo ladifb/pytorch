@@ -112,6 +112,8 @@ class DistributedDataParallel(Module):
             device_ids = list(range(torch.cuda.device_count()))
         if output_device is None:
             output_device = device_ids[0]
+        elif isinstance(output_device, torch.device):
+            output_device = output_device.index
         self.dim = dim
         self.module = module
         self.device_ids = device_ids

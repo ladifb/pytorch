@@ -830,11 +830,7 @@ class _DistTestBase(object):
             # Shuffle the input so that DDP input is different
             input = input[torch.randperm(batch_size)]
 
-    @unittest.skipIf(BACKEND != 'nccl' and BACKEND != 'gloo',
-                     "Only Nccl & Gloo backend support DistributedDataParallel")
-    @skip_if_no_cuda_distributed
-    @skip_if_no_gpu
-    def test_DistributedDataParallel(self):
+    def _test_DistributedDataParallel(self, output_device=None):
         # Run a simple end to end DDP model, use result of single node model
         # as baseline
         group, group_id, rank = self._init_global_test()
@@ -851,7 +847,7 @@ class _DistTestBase(object):
         # DDP training setup
         model_DDP = copy.deepcopy(model)
         model_DDP.cuda(gpu_subset[0])
-        model_DDP = nn.parallel.DistributedDataParallel(model_DDP, device_ids=gpu_subset)
+        model_DDP = nn.parallel.DistributedDataParallel(model_DDP, device_ids=gpu_subset, output_device=output_device)
 
         # dummy data initialization
         local_bs = len(gpu_subset)
@@ -867,6 +863,20 @@ class _DistTestBase(object):
                              rank,
                              global_bs)
         self._barrier()
+
+    @unittest.skipIf(BACKEND != 'nccl' and BACKEND != 'gloo',
+                     "Only Nccl & Gloo backend support DistributedDataParallel")
+    @skip_if_no_cuda_distributed
+    @skip_if_no_gpu
+    def test_DistributedDataParallel(self):
+        self._test_DistributedDataParallel()
+
+    @unittest.skipIf(BACKEND != 'nccl' and BACKEND != 'gloo',
+                     "Only Nccl & Gloo backend support DistributedDataParallel")
+    @skip_if_no_cuda_distributed
+    @skip_if_no_gpu
+    def test_DistributedDataParallel_ouput_device_cuda(self):
+        self._test_DistributedDataParallel(output_device=torch.device('cuda'))
 
     @unittest.skipIf(BACKEND == 'nccl', "nccl does not support DistributedDataParallelCPU")
     def test_DistributedDataParallelCPU(self):

@@ -124,6 +124,8 @@ class _DistributedDataParallelC10d(Module):
 
         if output_device is None:
             output_device = device_ids[0]
+        elif isinstance(output_device, torch.device):
+            output_device = output_device.index
 
         self.dim = dim
         self.module = module
