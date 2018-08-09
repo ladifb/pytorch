@@ -244,6 +244,40 @@ Tensor sparse_to_dense(const SparseTensor& self) {
   return dst.add_(self);
 }
 
+SparseTensor dense_to_sparse(const Tensor& self) {
+  AT_ASSERT(!self.is_sparse());
+   
+  auto type = self.type();
+  auto sizes = self.sizes();
+
+  // indices contains all the nonzero indices of self
+  const LongTensor indices = self.nonzero().t();
+  // num_vals contains the number of nonzero values in self
+  const int64_t num_vals = self.size(1);
+  // dense_ptr points to the data of self
+  auto dense_ptr = self.data();
+  
+  // nDim holds the total number of dimensions 
+  int64_t nDim = self.ndimension();
+  // instantiate vector to hold the strides
+  std::vector<int64_t> dense_strides(nDim);
+  // Fill in the stride values
+  for( int i = 0; i < nDim; i++) dense_strides[i] = self.stride(i);
+  // instantiate index accessor
+  auto indices_accessor = indices.accessor<int64_t, nDim>();
+
+  // Define the length of the 1 dim tensor as IntList
+  int64_t length[1]{num_vals};
+  // Declare the values Tensor (1D)
+  Tensor values;
+  // Resize the values Tensor of the proper length
+  Tensor &temp = values.resize(length);
+  
+
+
+  return new_with_tensor_and_size_sparse( indices, values, sizes);
+}
+
 SparseTensor& copy_sparse_(SparseTensor& self, const SparseTensor& src, bool non_blocking) {
   if (isSameTensor(self, src)) return self;
   _raw_resize_sparse(self, src._sparseDims(), src._denseDims(), src.sizes());
