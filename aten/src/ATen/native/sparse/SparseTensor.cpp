@@ -297,6 +297,12 @@ SparseTensor& copy_sparse_(SparseTensor& self, const SparseTensor& src, bool non
   return self;
 }
 
+SparseTensor& copy_dense_to_sparse_(SparseTensor& self, const Tensor& src, bool non_blocking) {
+  if (isSameTensor(self,src)) return self;
+  SparseTensor spSrc = dense_to_sparse(src);
+  return copy_sparse_(self, spSrc, non_blocking);
+}
+
 SparseTensor coalesce_sparse_cpu(const SparseTensor& self) {
   AT_ASSERT(self.defined());
   AT_ASSERT(!self.is_variable());

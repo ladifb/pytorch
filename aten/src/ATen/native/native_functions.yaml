@@ -1780,6 +1780,12 @@
     SparseCPU: copy_sparse_
     SparseCUDA: copy_sparse_
 
+- func: copy_dense_to_sparse_(Tesnor self, Tensor src, bool non_blocking=false) -> Tensor
+  variants: function
+  dispatch:
+    SparseCPU: copy_dense_to_sparse_
+    SparseCUDA: copy_dense_to_sparse_
+
 - func: numel(Tensor self) -> int64_t
   variants:
     - method
