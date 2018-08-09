@@ -28,8 +28,12 @@ void Type::registerCPU(Context * context) {
 Tensor & Type::copy_(Tensor & self, const Tensor & src, bool non_blocking) const {
   if (is_sparse()) {
     // copy_() for sparse tensor is not broadcastable
-    return copy_sparse_to_sparse_(self, src, non_blocking);
+    if (src.is_sparse())
+      return copy_sparse_to_sparse_(self, src, non_blocking);
+    else
+      return copy_dense_to_sparse_(self, src, non_blocking);
   }
+
   Tensor b_src;
   std::tie(b_src) = expand_inplace(self, src, "copy");
   return s_copy_(self, b_src, non_blocking);
