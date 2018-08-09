@@ -249,11 +249,12 @@ SparseTensor dense_to_sparse(const Tensor& self) {
    
   auto type = self.type();
   auto sizes = self.sizes();
+  auto dims = self.dim();
 
   // indices contains all the nonzero indices of self
   const LongTensor indices = self.nonzero().t();
   // num_vals contains the number of nonzero values in self
-  const int64_t num_vals = self.size(1);
+  const int64_t num_vals = indices.size(1);
   // dense_ptr points to the data of self
   auto dense_ptr = self.data();
   
@@ -273,8 +274,16 @@ SparseTensor dense_to_sparse(const Tensor& self) {
   // Resize the values Tensor of the proper length
   Tensor &temp = values.resize(length);
   
+  // Traverse the indices and write nonzero value to values Tensor
+  for( int64_t i = 0; i < dims; i++) {
+    Tensor dstBuffer = values;
+    for( int64_t k = 0; k < nDim; k++)
+      dstBuffer = dstBuffer.select(0, indices_accessor[k][i]);
+    Tensor srcBuffer = at::zeros(length, type.toSparse());
+    dstBuffer.add_(srcBuffer, 0);
+  }
 
-
+  // Create a new sparse tensor with correct sizes and return
   return new_with_tensor_and_size_sparse( indices, values, sizes);
 }
 
